@@ -7,6 +7,7 @@ alisp is a tiny Lisp interpreter written in Rust with zero dependencies. It is d
 ## Table of Contents
 
 - [Installation](#installation)
+- [Use as a Rust Library](#use-as-a-rust-library)
 - [Usage](#usage)
 - [Syntax](#syntax)
 - [Data Types](#data-types)
@@ -37,6 +38,100 @@ alisp is a tiny Lisp interpreter written in Rust with zero dependencies. It is d
 cargo build --release
 # Binary at: target/release/alisp
 ```
+
+---
+
+## Use as a Rust Library
+
+alisp works both as a standalone CLI tool and as a Rust library you can embed in your own projects.
+
+### Add Dependency
+
+```toml
+[dependencies]
+alisp = { path = "../alisp" }
+```
+
+### Public API
+
+```rust
+use alisp::{Evaluator, Expr, expr_to_string, json_parse_str, json_stringify};
+
+// Create an evaluator
+let mut eval = Evaluator::new();
+
+// Evaluate a single expression
+let result = eval.eval_str("(+ 1 2)").unwrap().unwrap();
+assert_eq!(expr_to_string(&result), "3");
+
+// Evaluate multiline code (last expression's value is returned)
+let result = eval.eval_str(r#"
+    (def x 10)
+    (def y 20)
+    (+ x y)
+"#).unwrap().unwrap();
+assert_eq!(expr_to_string(&result), "30");
+
+// Execute a file
+eval.eval_file("script.lisp").unwrap();
+
+// Access variables
+eval.set_global("my_var".into(), alisp::string("hello"));
+let val = eval.get("my_var").unwrap();
+```
+
+### Build AST Programmatically
+
+You can construct alisp expressions directly from Rust:
+
+```rust
+use alisp::{num, string, sym, list, nil, bool_val, Expr};
+
+// Build: (def x 42)
+let expr = list(vec![
+    sym("def"),
+    sym("x"),
+    num(42.0),
+]);
+
+// Build: (list 1 "hello" true)
+let expr = list(vec![
+    sym("list"),
+    num(1.0),
+    string("hello"),
+    bool_val(true),
+]);
+```
+
+### Parse and Stringify JSON
+
+```rust
+use alisp::{json_parse_str, json_stringify};
+
+let data = json_parse_str(r#"{"name": "alisp", "tags": ["lisp", "ai"]}"#).unwrap();
+let json = json_stringify(&data, false);   // pretty-printed
+let compact = json_stringify(&data, true); // compact
+```
+
+### Available Types and Functions
+
+| Export | Description |
+|--------|-------------|
+| `Evaluator` | The main interpreter. Call `eval_str()`, `eval()`, `eval_file()` |
+| `Expr` | The AST/expression enum. Variants: `Num`, `Str`, `Bool`, `Nil`, `Sym`, `List`, `Lambda`, `Builtin` |
+| `Token` | Tokenizer output |
+| `tokenize(input)` | Tokenize a string into tokens |
+| `parse(input)` | Parse a string into a list of expressions |
+| `parse_first(input)` | Parse a single expression |
+| `expr_to_string(expr)` | Convert an expression to its string representation |
+| `expr_to_num(expr)` | Convert an expression to f64 |
+| `expr_eq(a, b)` | Deep equality check |
+| `is_truthy(expr)` | Check if an expression is truthy |
+| `count_parens(s)` | Count unmatched parens (for multiline input) |
+| `json_parse_str(s)` | Parse a JSON string |
+| `json_stringify(expr, compact)` | Serialize to JSON |
+| `num(n)`, `int(n)`, `string(s)`, `sym(s)`, `list(v)`, `nil()`, `bool_val(b)` | Construct AST nodes |
+| `VERSION` | Version string constant |
 
 No external dependencies. Requires Rust toolchain to build.
 

@@ -19,6 +19,37 @@ cargo build --release
 ./target/release/alisp
 ```
 
+## Use as a Rust Library
+
+Add to your `Cargo.toml`:
+
+```toml
+alisp = { path = "../alisp" }
+```
+
+```rust
+use alisp::Evaluator;
+
+fn main() {
+    let mut eval = Evaluator::new();
+
+    // Evaluate expressions
+    let result = eval.eval_str("(+ 1 2)").unwrap().unwrap();
+    println!("{}", alisp::expr_to_string(&result)); // "3"
+
+    // Run a full script
+    eval.eval_str(r#"
+        (def name (exec "whoami"))
+        (println "Hello from" name)
+    "#).unwrap();
+
+    // Execute a file
+    eval.eval_file("script.lisp").unwrap();
+}
+```
+
+See the [full API docs](docs.md) for all available functions.
+
 ## Example
 
 ```lisp
@@ -53,12 +84,10 @@ cargo build --release
 | **Error handling** | try/catch with error messages |
 | **REPL** | Interactive with multiline input support |
 
-## Run Tests
+## Documentation
 
-```bash
-cargo test
-```
+- [docs.md](docs.md) - Full language reference and API docs
 
 ## License
 
-[LICENSE](LICENSE)
+[MIT](LICENSE)
