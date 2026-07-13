@@ -1238,6 +1238,126 @@ Get keys from a JSON object.
 
 ---
 
+### Regular Expressions
+
+alisp includes a built-in regex engine supporting the following syntax:
+
+| Pattern | Description |
+|---------|-------------|
+| `abc` | Literal characters |
+| `.` | Any character |
+| `\d` / `\D` | Digit / non-digit |
+| `\w` / `\W` | Word char (alphanumeric + `_`) / non-word |
+| `\s` / `\S` | Whitespace / non-whitespace |
+| `[abc]` | Character class |
+| `[a-z]` | Character range |
+| `[^abc]` | Negated class |
+| `*` | Zero or more |
+| `+` | One or more |
+| `?` | Zero or one |
+| `\|` | Alternation |
+| `(...)` | Group |
+| `^` | Start of string anchor |
+| `$` | End of string anchor |
+
+#### `re-test` / `re-match?`
+
+Test if a regex pattern matches anywhere in a string. Returns `true` or `false`.
+
+```lisp
+(re-test "hello.*world" "hello beautiful world")  ; => true
+(re-test "^[a-z]+$" "hello")                       ; => true
+(re-test "^[a-z]+$" "hello123")                    ; => false
+(re-test "\\d+" "abc123")                          ; => true
+```
+
+#### `re-match`
+
+Test if a regex pattern matches the **entire** string. Returns a match result list `(match start end)` or `nil`.
+
+```lisp
+(re-match "^[a-z]+$" "hello")     ; => ("hello" 0 5)
+(re-match "^[a-z]+$" "abc123")    ; => nil
+(re-match "\\d+" "123abc")        ; => nil (doesn't match full string)
+```
+
+#### `re-find`
+
+Find the first occurrence of a pattern in a string. Returns the matched string or `nil`.
+
+```lisp
+(re-find "\\d+" "abc123def456")   ; => "123"
+(re-find "http" "visit http://example.com")  ; => "http"
+(re-find "[a-z]+" "ABC123xyz")    ; => "xyz"
+```
+
+#### `re-find-all`
+
+Find all non-overlapping matches. Returns a list of matched strings.
+
+```lisp
+(re-find-all "\\d+" "abc123def456ghi789")  ; => ("123" "456" "789")
+(re-find-all "[aeiou]+" "hello world")      ; => ("e" "o" "o")
+```
+
+#### `re-replace`
+
+Replace the **first** occurrence of a pattern.
+
+```lisp
+(re-replace "hello world" "world" "alisp")  ; => "hello alisp"
+(re-replace "aaa" "a+" "X")                 ; => "Xa" (only first match)
+```
+
+#### `re-replace-all`
+
+Replace **all** occurrences of a pattern.
+
+```lisp
+(re-replace-all "aabbcc" "b+" "X")  ; => "aaXcc"
+(re-replace-all "aaa" "a+" "X")     ; => "X" (all 'a' sequences replaced)
+```
+
+#### `re-split`
+
+Split a string by a regex pattern. Returns a list of substrings.
+
+```lisp
+(re-split "\\s+" "hello world foo bar")  ; => ("hello" "world" "foo" "bar")
+(re-split "," "one,two,three")           ; => ("one" "two" "three")
+(re-split "\\d+" "abc123def456")         ; => ("abc" "def" "")
+```
+
+#### `re-scan`
+
+Find all matches with their positions. Returns a list of `(match start end)` tuples.
+
+```lisp
+(re-scan "[a-z]+" "abc 123 def 456")
+; => (("abc" 0 3) ("def" 8 11))
+```
+
+#### Regex Examples
+
+```lisp
+; Validate email-like pattern
+(re-test "^[a-z]+@[a-z]+\\.[a-z]+$" "user@example.com")  ; => true
+
+; Extract all numbers from a string
+(re-find-all "-?\\d+\\.?\\d*" "pi is 3.14 and e is 2.71")
+; => ("3.14" "2.71")
+
+; Normalize whitespace
+(re-replace-all "\\s+" "hello    world   foo" " ")
+; => "hello world foo"
+
+; Extract domains from URLs
+(def urls (list "https://example.com/path" "http://test.org/page"))
+(map (fn (url) (re-find "https?://([^/]+)" url)) urls)
+```
+
+---
+
 ### Misc
 
 #### `sleep`

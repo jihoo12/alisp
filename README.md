@@ -80,6 +80,7 @@ See the [full API docs](docs.md) for all available functions.
 | **HTTP** | GET, POST, PUT, DELETE via curl |
 | **JSON** | Parse, stringify, get/set values |
 | **Strings** | Split, join, replace, trim, format, case conversion |
+| **Regex** | Match, find, find-all, replace, split, scan with full regex support |
 | **Lists** | Map, filter, reduce, sort, reverse, zip |
 | **Error handling** | try/catch with error messages |
 | **REPL** | Interactive with multiline input support |
