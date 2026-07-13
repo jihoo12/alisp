@@ -525,6 +525,18 @@ Read entire file contents as a string.
 (println content)
 ```
 
+#### `read-lines`
+
+Read a file and return its contents as a list of lines (without newline characters).
+
+```lisp
+(def lines (read-lines "Cargo.toml"))
+(println (len lines))       ; number of lines
+(println (car lines))       ; first line
+(dolist (line lines)
+  (println ">" line))
+```
+
 #### `write` / `write-file`
 
 Write a string to a file (creates or overwrites).
@@ -568,12 +580,56 @@ Create a directory (recursive, like `mkdir -p`).
 (mkdir "path/to/nested/dir")
 ```
 
+#### `touch`
+
+Create an empty file or update an existing file's timestamp.
+
+```lisp
+(touch "new-file.txt")       ; creates empty file
+(touch "existing.log")       ; updates timestamp
+```
+
+#### `file-size`
+
+Get the size of a file in bytes.
+
+```lisp
+(file-size "Cargo.toml")     ; => 1542
+```
+
+#### `file?`
+
+Check if a path is a file (not a directory).
+
+```lisp
+(file? "Cargo.toml")  ; => true
+(file? "src")          ; => false
+```
+
+#### `dir?`
+
+Check if a path is a directory.
+
+```lisp
+(dir? "src")           ; => true
+(dir? "Cargo.toml")    ; => false
+```
+
+#### `mtime`
+
+Get the last modification time of a file as a Unix timestamp (seconds since epoch).
+
+```lisp
+(mtime "Cargo.toml")   ; => 1783926780
+```
+
 #### `cp` / `copy`
 
-Copy a file.
+Copy a file or directory. Directories are copied recursively.
 
 ```lisp
 (cp "source.txt" "backup.txt")
+(cp "src-dir" "dst-dir")  ; recursive copy
 ```
 
 #### `mv` / `move`
@@ -596,12 +652,20 @@ List directory contents, returns sorted list of filenames.
 
 #### `glob`
 
-Find files matching a glob pattern. Supports `*` wildcards.
+Find files matching a glob pattern. Supports `*`, `**`, and `?` wildcards.
+
+| Pattern | Description |
+|---------|-------------|
+| `*.rs` | Match files in current directory |
+| `src/**/*.rs` | Match all `.rs` files recursively under `src/` |
+| `*.?` | Match single character wildcard |
+| `**/*.toml` | Match all `.toml` files anywhere |
 
 ```lisp
 (glob "*.rs")           ; Rust files in current dir
-(glob "src/**/*.rs")    ; doesn't support **, use simpler patterns
-(glob "*.lisp")         ; all .lisp files
+(glob "src/**/*.rs")    ; all .rs files under src/ (recursive)
+(glob "data/*.csv")     ; CSV files in data/
+(glob "file?.txt")      ; file1.txt, file2.txt, etc.
 ```
 
 #### `cwd` / `pwd`
@@ -619,6 +683,53 @@ Change current working directory.
 ```lisp
 (cd "/tmp")
 (println (cwd))  ; => "/tmp"
+```
+
+#### `basename`
+
+Get the filename from a path. Optionally strip a suffix.
+
+```lisp
+(basename "src/main.rs")          ; => "main.rs"
+(basename "src/main.rs" ".rs")    ; => "main"
+(basename "/home/user/file.txt")  ; => "file.txt"
+```
+
+#### `dirname`
+
+Get the directory portion of a path.
+
+```lisp
+(dirname "src/main.rs")          ; => "src"
+(dirname "/home/user/file.txt")  ; => "/home/user"
+```
+
+#### `ext`
+
+Get the file extension (without the dot).
+
+```lisp
+(ext "main.rs")          ; => "rs"
+(ext "archive.tar.gz")   ; => "gz"
+(ext "Makefile")         ; => ""
+```
+
+#### `join-path`
+
+Join path segments into a single path.
+
+```lisp
+(join-path "src" "lib" "mod.rs")  ; => "src/lib/mod.rs"
+(join-path "/home" "user")         ; => "/home/user"
+```
+
+#### `realpath`
+
+Resolve a path to its absolute canonical form (resolves `..`, `.`, and symlinks).
+
+```lisp
+(realpath ".")              ; => "/home/user/project"
+(realpath "../src/../src")  ; => "/home/user/project/src"
 ```
 
 ---
