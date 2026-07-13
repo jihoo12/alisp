@@ -24,7 +24,7 @@ cargo build --release
 Add to your `Cargo.toml`:
 
 ```toml
-alisp = { path = "../alisp" }
+alisp = { git = "https://github.com/jihoo12/alisp" }
 ```
 
 ```rust
