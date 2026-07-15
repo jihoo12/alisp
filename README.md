@@ -79,6 +79,7 @@ See the [full API docs](docs.md) for all available functions.
 | **Files** | Read, write, list, glob, mkdir, cp, mv, rm |
 | **HTTP** | GET, POST, PUT, DELETE via curl |
 | **JSON** | Parse, stringify, get/set values |
+| **SQL** | SQLite queries, execute, schema introspection (rusqlite bundled) |
 | **Strings** | Split, join, replace, trim, format, case conversion |
 | **Regex** | Match, find, find-all, replace, split, scan with full regex support |
 | **Lists** | Map, filter, reduce, sort, reverse, zip |

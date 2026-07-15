@@ -25,6 +25,7 @@ alisp is a tiny Lisp interpreter written in Rust with zero dependencies. It is d
   - [IO](#io)
   - [HTTP](#http)
   - [JSON](#json)
+  - [SQL](#sql-sqlite)
   - [Misc](#misc)
 - [Error Handling](#error-handling)
 - [Examples](#examples)
@@ -1391,6 +1392,126 @@ Get keys from a JSON object.
 
 ```lisp
 (json-keys (json-parse "{\"a\":1,\"b\":2}"))  ; => ("a" "b")
+```
+
+---
+
+### SQL (SQLite)
+
+alisp includes built-in SQLite support via `rusqlite` (bundled — no external SQLite install required). Multiple named connections are supported; most functions use a `"default"` connection.
+
+#### `sql-open`
+
+Open a SQLite database file. Enables WAL journal mode and foreign keys by default.
+
+```lisp
+; Open a file database (default connection)
+(sql-open "mydata.db")
+
+; Open in-memory database
+(sql-open ":memory:")
+
+; Open with a named connection
+(sql-open "mydata.db" "analytics")
+```
+
+#### `sql-execute`
+
+Execute a non-SELECT SQL statement (INSERT, UPDATE, DELETE, CREATE TABLE, DROP, etc.) with optional bind parameters. Returns the number of rows affected.
+
+```lisp
+; Create a table
+(sql-execute "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)")
+
+; Insert with bind parameters
+(sql-execute "INSERT INTO users (name, age) VALUES (?, ?)" "Alice" 30)
+(sql-execute "INSERT INTO users (name, age) VALUES (?, ?)" "Bob" 25)
+
+; Update
+(sql-execute "UPDATE users SET age = ? WHERE name = ?" 31 "Alice")
+
+; Delete
+(sql-execute "DELETE FROM users WHERE id = ?" 1)
+```
+
+Bind parameter types: `number` → real, `string` → text, `bool` → integer (0/1), `nil` → NULL.
+
+#### `sql-query`
+
+Execute a SELECT query with optional bind parameters. Returns column headers as the first element, followed by row lists.
+
+```lisp
+; Basic query
+(def results (sql-query "SELECT * FROM users"))
+; => (("id" "name" "age")
+;     (1 "Alice" 31)
+;     (2 "Bob" 25))
+
+; Parameterized query
+(def old (sql-query "SELECT name FROM users WHERE age > ?" 28))
+; => (("name") ("Alice"))
+
+; Empty result
+(sql-query "SELECT * FROM users WHERE id = 999")  ; => ()
+```
+
+#### `sql-tables`
+
+List all user-created tables in the database (excludes internal `sqlite_*` tables).
+
+```lisp
+(sql-open "mydata.db")
+(sql-tables)  ; => ("users" "orders" "products")
+```
+
+#### `sql-schema`
+
+Get the CREATE TABLE statement for a given table.
+
+```lisp
+(sql-schema "users")
+; => "CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER)"
+```
+
+#### `sql-close`
+
+Close a database connection.
+
+```lisp
+(sql-close)            ; close the default connection
+(sql-close "analytics") ; close a named connection
+```
+
+#### SQL Examples
+
+```lisp
+; Full workflow
+(sql-open ":memory:")
+(sql-execute "CREATE TABLE todos (id INTEGER PRIMARY KEY, task TEXT, done INTEGER)")
+(sql-execute "INSERT INTO todos (task, done) VALUES (?, ?)" "Buy milk" 0)
+(sql-execute "INSERT INTO todos (task, done) VALUES (?, ?)" "Write docs" 1)
+
+; Query incomplete tasks
+(def pending (sql-query "SELECT id, task FROM todos WHERE done = 0"))
+(println "Pending tasks:" (- (len pending) 1))
+
+; Update
+(sql-execute "UPDATE todos SET done = 1 WHERE task = ?" "Buy milk")
+
+; Count
+(let ((result (sql-query "SELECT COUNT(*) as cnt FROM todos")))
+  (println "Total:" (nth (nth result 1) 0)))
+
+(sql-close)
+```
+
+```lisp
+; Named connections for different databases
+(sql-open "users.db" "users")
+(sql-open "analytics.db" "analytics")
+(sql-execute "SELECT * FROM logs" "analytics")
+(sql-close "users")
+(sql-close "analytics")
 ```
 
 ---

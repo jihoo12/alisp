@@ -273,6 +273,23 @@ JSON <-> alisp mapping:
 (json-keys obj)                   ; list of string keys
 ```
 
+### SQL (SQLite)
+
+Uses `rusqlite` (bundled). Multiple named connections supported; `"default"` is used implicitly.
+
+```
+(sql-open path)                ; open DB file (or ":memory:"), default connection
+(sql-open path "mydb")         ; open with named connection
+(sql-execute "INSERT INTO t VALUES (?, ?)" 1 "hello")  ; run non-SELECT SQL
+(sql-query "SELECT * FROM users WHERE id > ?" 10)       ; returns ((col...) (row...) ...)
+(sql-tables)                   ; list table names
+(sql-schema "users")           ; CREATE TABLE statement
+(sql-close)                    ; close default connection
+(sql-close "mydb")             ; close named connection
+```
+
+Bind params: number, string, bool, nil. Returns `((col1 col2) (val1 val2) ...)` for queries.
+
 ### Misc
 
 ```
